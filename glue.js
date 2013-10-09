@@ -149,6 +149,8 @@ new function () {
                 script.onload = script.onreadystatechange = null;
             }
         };
+
+				head.appendChild(script);
     } else {
         onReady();
     }
