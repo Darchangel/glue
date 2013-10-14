@@ -5,7 +5,10 @@ new function () {
         VIEW_LINK_ATTR = 'load-view', //Attribute, to be placed in a <a> tag, specifying that it will load a view
         VIEW_LINK_TARGET_ATTR = 'on', //Attribute, to be placed in a <a> tag with the VIEW_LINK_ATTR attribute, specifying the id of the element in which the viewis to be loaded
         // If this attribute is not specified, the view will be loaded in the nearest ancestor with a VIEW_ATTR attribute
-        RELOAD_CLASS = 'reload-after'; //Class for elements that need reloading after compilation
+        RELOAD_CLASS = 'reload-after', //Class for elements that need reloading after compilation
+
+				compatible_mode = true, //If true, assume that some or other views may be loaded externally, not triggering link behavior, and recurrently search links and set their load-view behavior.
+				compatible_mode_interval = 500; //Time interval (milisseconds) to check for new "load-view" links
 
 
     var view_cache = {}; //Cache for the loaded views
@@ -37,12 +40,13 @@ new function () {
             }
 
             if (target) { //Only do something if a target was either specified or found
-                $(this).click(function () {
-                    var $container = $('#' + target);
+							$(this).attr('href', '');
+							$(this).click(function () {
+								var $container = $('#' + target);
 
-                    loadView(path, $container); //Load the view
-                    processAllLinks($container); //Set the links
-                });
+								loadView(path, $container); //Load the view
+								processAllLinks($container); //Set the links
+							});
             }
         });
     }
@@ -127,6 +131,13 @@ new function () {
         $(function () {
             loadAllViews(); //Load all the defined views...
             processAllLinks(); //...and process all the links
+
+						if(compatible_mode){
+							setInterval(function(){
+								loadAllViews(); //Just in case something slips by...
+								processAllLinks();
+							}, compatible_mode_interval);
+						}
         });
     }
 
