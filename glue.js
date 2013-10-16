@@ -42,11 +42,15 @@ new function () {
 
             if (target) { //Only do something if a target was either specified or found
                 $(this).attr('href', '');
-                $(this).click(function () {
+                $(this).click(function (event) {
                     var $container = $('#' + target);
 
                     loadView(path, $container); //Load the view
                     processAllLinks($container); //Set the links
+
+                    //Avoid further navigation
+                    event.preventDefault();
+                    return false;
                 });
             }
         });
