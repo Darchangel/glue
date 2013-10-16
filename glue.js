@@ -2,13 +2,14 @@ new function () {
     "use strict";
 
     var VIEW_ATTR = 'view', //Attribute to specify that a view should be loaded in a tag
+        VIEW_LOADED_ATTR = 'view-loaded', //Attribute to specify that a view has already been loaded
         VIEW_LINK_ATTR = 'load-view', //Attribute, to be placed in a <a> tag, specifying that it will load a view
         VIEW_LINK_TARGET_ATTR = 'on', //Attribute, to be placed in a <a> tag with the VIEW_LINK_ATTR attribute, specifying the id of the element in which the viewis to be loaded
         // If this attribute is not specified, the view will be loaded in the nearest ancestor with a VIEW_ATTR attribute
         RELOAD_CLASS = 'reload-after', //Class for elements that need reloading after compilation
 
-				compatible_mode = true, //If true, assume that some or other views may be loaded externally, not triggering link behavior, and recurrently search links and set their load-view behavior.
-				compatible_mode_interval = 500; //Time interval (milisseconds) to check for new "load-view" links
+        compatible_mode = true, //If true, assume that some or other views may be loaded externally, not triggering link behavior, and recurrently search links and set their load-view behavior.
+        compatible_mode_interval = 500; //Time interval (milisseconds) to check for new "load-view" links
 
 
     var view_cache = {}; //Cache for the loaded views
@@ -40,13 +41,13 @@ new function () {
             }
 
             if (target) { //Only do something if a target was either specified or found
-							$(this).attr('href', '');
-							$(this).click(function () {
-								var $container = $('#' + target);
+                $(this).attr('href', '');
+                $(this).click(function () {
+                    var $container = $('#' + target);
 
-								loadView(path, $container); //Load the view
-								processAllLinks($container); //Set the links
-							});
+                    loadView(path, $container); //Load the view
+                    processAllLinks($container); //Set the links
+                });
             }
         });
     }
@@ -56,18 +57,19 @@ new function () {
     //Actually render a view (html file) into an element, setting all the included <link> and <script> tags in the document's <head>
 
     function renderView(view, element) {
+        var i;
         //If there are any links or scripts to load, load them first
         if (view.links.length || view.scripts.length) {
             var head = document.head || document.getElementsByTagName('head')[0];
 
             var link_length = view.links.length;
-            for (var i = 0; i < link_length; i++) {
+            for (i = 0; i < link_length; i++) {
                 head.appendChild(view.links[i]);
             }
             view.links = []; //All done, nothing else to do here
 
             var script_length = view.scripts.length;
-            for (var i = 0; i < script_length; i++) {
+            for (i = 0; i < script_length; i++) {
                 head.appendChild(view.scripts[i]);
             }
             view.scripts = []; //All done, nothing else to do here
@@ -80,7 +82,7 @@ new function () {
         //Check if there is any element that needs reloading after compilation (e.g. embedded flash videos)
         var reloaders = $('.' + RELOAD_CLASS, $elm);
         var len = reloaders.length;
-        for (var i = 0; i < len; i++) {
+        for (i = 0; i < len; i++) {
             var elm = reloaders[i];
             var parent = elm.parentNode;
 
@@ -90,6 +92,9 @@ new function () {
                 parent.appendChild(elm);
             }, 0);
         }
+
+        //Mark view as loaded
+        $elm.attr(VIEW_LOADED_ATTR, '');
 
         //Finally, load any other views that may be defined in this one
         loadAllViews($elm);
@@ -115,7 +120,7 @@ new function () {
 
     function loadAllViews(container) {
         //Load all the views, recursively (views can be nested)
-        var $views = $('[' + VIEW_ATTR + ']', container);
+        var $views = $('[' + VIEW_ATTR + ']', container).not('[' + VIEW_LOADED_ATTR + ']');
         $views.each(function () {
             var element = $(this);
             var path = element.attr(VIEW_ATTR);
@@ -125,19 +130,19 @@ new function () {
     }
 
 
-		//Set the view loading on the DOM ready event
+    //Set the view loading on the DOM ready event
 
     function onReady() {
         $(function () {
             loadAllViews(); //Load all the defined views...
             processAllLinks(); //...and process all the links
 
-						if(compatible_mode){
-							setInterval(function(){
-								loadAllViews(); //Just in case something slips by...
-								processAllLinks();
-							}, compatible_mode_interval);
-						}
+            if(compatible_mode){
+                setInterval(function(){
+                    loadAllViews(); //Just in case something slips by...
+                    processAllLinks();
+                }, compatible_mode_interval);
+            }
         });
     }
 
@@ -161,7 +166,7 @@ new function () {
             }
         };
 
-				head.appendChild(script);
+        head.appendChild(script);
     } else {
         onReady();
     }
@@ -245,7 +250,7 @@ new function () {
     function add_parent_path(parent, path) {
         if (!path.indexOf('http://') < 0 && !path.indexOf('https://') < 0) { //Not an absolute path
             path.replace(/^\//, ''); //Remove the first slash, if any
-            path = parent + '/' + path;
+                         path = parent + '/' + path;
         } else { //An absolute path
             //If in this domain, just add the parent path in the middle of the URL
             var top = document.location.toString();
