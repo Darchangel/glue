@@ -1,4 +1,4 @@
-new function () {
+(function () {
     "use strict";
 
     var VIEW_ATTR = 'view', //Attribute to specify that a view should be loaded in a tag
@@ -192,6 +192,7 @@ new function () {
     //Parse a html file of a view, extract the link and script tags from it and fix their paths
 
     function parse_view(html_fragment, view_path) {
+        var idx;
         var parts = {
             body: null,
             scripts: [],
@@ -212,7 +213,7 @@ new function () {
 
         //Add all <link>s to 
         var nlinks = links.length;
-        for (var idx = 0; idx < nlinks; idx++) {
+        for (idx = 0; idx < nlinks; idx++) {
             var link = links[idx].cloneNode(true);
             link.href = add_parent_path(base_path, link.href); //Point the URL to the correct place
             parts.links.push(link);
@@ -223,7 +224,7 @@ new function () {
         }
 
         var nscripts = scripts.length;
-        for (var idx = 0; idx < nscripts; idx++) {
+        for (idx = 0; idx < nscripts; idx++) {
             var tag = scripts[idx];
             var script = document.createElement('script');
             script.type = tag.type;
@@ -250,9 +251,8 @@ new function () {
     }
 
     //Adds <parent> as a parent to <path>, if <path> is relative
-
     function add_parent_path(parent, path) {
-        if (!path.indexOf('http://') < 0 && !path.indexOf('https://') < 0) { //Not an absolute path
+        if (path.indexOf('http://') < 0 && path.indexOf('https://') < 0) { //Not an absolute path
             path.replace(/^\//, ''); //Remove the first slash, if any
                          path = parent + '/' + path;
         } else { //An absolute path
@@ -264,4 +264,4 @@ new function () {
 
         return path;
     }
-}();
+})();
